@@ -48,6 +48,10 @@ import dify
 _SERVICE: MapServices | None = None
 _WEATHER: AmapWeather | None = None
 
+import dotenv
+
+dotenv.load_dotenv("local.env.example")
+
 
 def get_service() -> MapServices:
     """惰性创建 MapServices 单例，避免无 Key 时 import 即报错。"""

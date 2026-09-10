@@ -8,7 +8,9 @@ import requests
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+import dotenv
 
+dotenv.load_dotenv("local.env.example")
 # ============ 配置 ============
 DIFY_API_BASE = os.environ.get("DIFY_API_BASE", "https://api.dify.ai/v1").rstrip("/")
 DIFY_API_KEY = os.environ.get("DIFY_API_KEY", "").strip()
