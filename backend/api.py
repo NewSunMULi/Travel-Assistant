@@ -36,11 +36,13 @@ import sys
 
 from fastapi import FastAPI, Query
 from pydantic import BaseModel, Field
+from starlette.middleware.cors import CORSMiddleware
 
 # 确保能 import 同目录的 serives 包
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from serives.MapSerive import MapServices, AmapAPIError  # noqa: E402
 from serives.weatherService import AmapWeather  # noqa: E402
+import dify
 
 # ───────────────────── 全局服务实例（惰性初始化） ─────────────────────
 _SERVICE: MapServices | None = None
@@ -72,6 +74,15 @@ app = FastAPI(
     title="amap-kunming-travel-map",
     description="高德地图服务 —— 昆明智能旅行决策 Agent 工具层（FastAPI 版）",
     version="1.0.0",
+)
+
+app.include_router(dify.router, prefix="/dify", tags=["dify"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 生产环境不要用 "*"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -361,7 +372,7 @@ def main() -> None:
         print("⚠️  警告：环境变量 AMAP_KEY 未设置，调用地图/天气接口时将报错。"
               "\n    请先执行: export AMAP_KEY=你的Web服务Key", file=sys.stderr)
 
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
 if __name__ == "__main__":
