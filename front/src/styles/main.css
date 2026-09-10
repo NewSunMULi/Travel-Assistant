@@ -1,0 +1,402 @@
+/* ===============================
+   ChatGPT 风格 · 全局主题变量
+   =============================== */
+
+:root {
+  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Microsoft YaHei', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', Consolas, Menlo, monospace;
+
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---------- 浅色主题 ---------- */
+:root,
+[data-theme='light'] {
+  --bg: #f7f7f8;
+  --sidebar-bg: #ececf1;
+  --surface: #ffffff;
+  --surface-2: #f4f4f6;
+  --surface-3: #e8e8ee;
+  --text: #1f1f1f;
+  --text-soft: #3d3d3d;
+  --muted: #6e6e7a;
+  --border: #e5e5e8;
+  --border-strong: #d4d4d8;
+
+  --primary: #10a37f;
+  --primary-hover: #0d8a6b;
+  --primary-soft: #d7f4ea;
+  --primary-text: #ffffff;
+
+  --accent: #6c5ce7;
+  --accent-soft: #ede9fe;
+
+  --success: #10a37f;
+  --success-soft: #d7f4ea;
+  --warning: #f59e0b;
+  --warning-soft: #fef3c7;
+  --danger: #ef4444;
+  --danger-soft: #fee2e2;
+  --purple: #8b5cf6;
+  --purple-soft: #ede9fe;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --ring: 0 0 0 3px rgba(16, 163, 127, 0.2);
+}
+
+/* ---------- 深色主题 ---------- */
+[data-theme='dark'] {
+  --bg: #212121;
+  --sidebar-bg: #171717;
+  --surface: #2f2f35;
+  --surface-2: #3d3d45;
+  --surface-3: #4a4a55;
+  --text: #f5f5f5;
+  --text-soft: #d1d1d1;
+  --muted: #8a8a95;
+  --border: #3f3f46;
+  --border-strong: #52525b;
+
+  --primary: #10a37f;
+  --primary-hover: #0dd6a3;
+  --primary-soft: rgba(16, 163, 127, 0.18);
+  --primary-text: #ffffff;
+
+  --accent: #a78bfa;
+  --accent-soft: rgba(139, 92, 246, 0.18);
+
+  --success: #10a37f;
+  --success-soft: rgba(16, 163, 127, 0.18);
+  --warning: #fbbf24;
+  --warning-soft: rgba(245, 158, 11, 0.18);
+  --danger: #f87171;
+  --danger-soft: rgba(239, 68, 68, 0.18);
+  --purple: #a78bfa;
+  --purple-soft: rgba(139, 92, 246, 0.18);
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --ring: 0 0 0 3px rgba(16, 163, 127, 0.25);
+}
+
+/* ===============================
+   Reset & Base
+   =============================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background var(--transition), color var(--transition);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+a:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 0 12px;
+  color: var(--text);
+  line-height: 1.3;
+  font-weight: 600;
+}
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: 17px;
+}
+h4 {
+  font-size: 15px;
+}
+
+p {
+  margin: 0 0 10px;
+}
+
+/* ===============================
+   通用组件
+   =============================== */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: background var(--transition), border-color var(--transition),
+    box-shadow var(--transition);
+}
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+.tag.primary {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: transparent;
+}
+.tag.success {
+  background: var(--success-soft);
+  color: var(--success);
+  border-color: transparent;
+}
+.tag.warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+  border-color: transparent;
+}
+.tag.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: transparent;
+}
+.tag.purple {
+  background: var(--purple-soft);
+  color: var(--purple);
+  border-color: transparent;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition: all var(--transition);
+  cursor: pointer;
+}
+.btn:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+.btn.primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+.btn.ghost {
+  background: transparent;
+  border-color: var(--border);
+}
+.btn.ghost:hover {
+  background: var(--surface-2);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.chip {
+  padding: 5px 13px;
+  font-size: 13px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.chip:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+.chip.active {
+  background: var(--primary);
+  color: var(--primary-text);
+  border-color: var(--primary);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.section-title .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 32px 16px;
+  font-size: 14px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 760px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===============================
+   输入框
+   =============================== */
+
+input[type='text'],
+input[type='number'],
+select,
+textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  font-family: inherit;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: var(--ring);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ===============================
+   滚动条
+   =============================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* ===============================
+   Pre / Code
+   =============================== */
+
+pre {
+  background: #0d1117;
+  color: #e6edf3;
+  padding: 14px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  line-height: 1.55;
+  overflow-x: auto;
+  font-family: var(--mono);
+}
+
+/* ===============================
+   过渡动画
+   =============================== */
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
