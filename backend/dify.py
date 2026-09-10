@@ -1,35 +1,91 @@
 # dify.py
 import json
+import os
+from datetime import date
+from typing import Any, Dict
+
 import requests
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
-from typing import Dict, Any
+from pydantic import BaseModel, Field
 
 # ============ 配置 ============
-DIFY_API_BASE = "https://api.dify.ai/v1"   # 自建实例改成自己的地址
-DIFY_API_KEY = "app-xxxxxxxxxxxxxxxx"      # Dify 应用 API Key
+DIFY_API_BASE = os.environ.get("DIFY_API_BASE", "https://api.dify.ai/v1").rstrip("/")
+DIFY_API_KEY = os.environ.get("DIFY_API_KEY", "").strip()
 
 router = APIRouter()
 
 
+# ============ 请求模型 ============
+
+class TravelPlanRequest(BaseModel):
+    """旅行规划请求 —— 与用户输入字段一一对应。
+
+    示例：
+    {
+        "destination": "昆明",
+        "departure": "-",
+        "days": 2,
+        "people": "2",
+        "budget": "3000",
+        "style": "休闲",
+        "special_request": "帮我安排完整行程",
+        "start_date": "2026-09-11"
+    }
+    """
+    destination: str = Field(..., description="目的地，如 昆明")
+    departure: str = Field("-", description="出发地，'-' 表示未指定/当地出发")
+    days: int = Field(..., ge=1, description="旅行天数")
+    people: str = Field(..., description="出行人数")
+    budget: str = Field(..., description="总预算（元）")
+    style: str = Field("休闲", description="旅行风格，如 休闲/特种兵/亲子")
+    special_request: str = Field("", description="特殊需求/备注")
+    start_date: date = Field(..., description="出发日期，YYYY-MM-DD")
+    user: str = Field("default-user", description="Dify 用户标识")
+
+    def to_dify_inputs(self) -> Dict[str, Any]:
+        """组装成 Dify 工作流的 inputs（字段名与 Dify 开始节点变量保持一致）。"""
+        return {
+            "destination": self.destination,
+            "departure": self.departure,
+            "days": self.days,
+            "people": self.people,
+            "budget": self.budget,
+            "style": self.style,
+            "special_request": self.special_request,
+            "start_date": self.start_date.isoformat(),
+        }
+
+
 class WorkflowRequest(BaseModel):
-    inputs: Dict[str, Any] = {}
+    """原始透传模式：兼容旧的前端调用（任意 inputs 直接转发）。"""
+    inputs: Dict[str, Any] = Field(default_factory=dict)
     query: str = ""
     user: str = "default-user"
 
 
-def stream_dify_workflow(payload: WorkflowRequest):
+# ============ Dify 流式调用 ============
+
+def stream_dify_workflow(inputs: Dict[str, Any], user: str = "default-user"):
     """调用 Dify 工作流 streaming 接口，逐条 yield SSE 数据。"""
+    if not DIFY_API_KEY:
+        err = {
+            "event": "error",
+            "stage": "配置错误",
+            "error": "环境变量 DIFY_API_KEY 未设置",
+        }
+        yield f"data: {json.dumps(err, ensure_ascii=False)}\n\n"
+        return
+
     url = f"{DIFY_API_BASE}/workflows/run"
     headers = {
         "Authorization": f"Bearer {DIFY_API_KEY}",
         "Content-Type": "application/json",
     }
     body = {
-        "inputs": payload.inputs,
+        "inputs": inputs,
         "response_mode": "streaming",
-        "user": payload.user,
+        "user": user,
     }
 
     try:
@@ -94,15 +150,44 @@ def stream_dify_workflow(payload: WorkflowRequest):
         yield f"data: {json.dumps(err, ensure_ascii=False)}\n\n"
 
 
-@router.post("/workflow/stream")
-async def workflow_stream(payload: WorkflowRequest):
-    """前端通过 POST 调用，返回 SSE 流式响应。"""
+def _sse_response(generator) -> StreamingResponse:
     return StreamingResponse(
-        stream_dify_workflow(payload),
+        generator,
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
         },
+    )
+
+
+# ============ 路由 ============
+
+@router.post("/travel/plan/stream")
+async def travel_plan_stream(payload: TravelPlanRequest):
+    """旅行规划入口：接收用户旅行参数，组装 inputs 后调用 Dify 工作流，返回 SSE 流式响应。
+
+    请求体示例：
+    {
+        "destination": "昆明",
+        "departure": "-",
+        "days": 2,
+        "people": "2",
+        "budget": "3000",
+        "style": "休闲",
+        "special_request": "帮我安排完整行程",
+        "start_date": "2026-09-11"
+    }
+    """
+    return _sse_response(
+        stream_dify_workflow(payload.to_dify_inputs(), user=payload.user)
+    )
+
+
+@router.post("/workflow/stream")
+async def workflow_stream(payload: WorkflowRequest):
+    """原始透传模式：前端通过 POST 调用，返回 SSE 流式响应。"""
+    return _sse_response(
+        stream_dify_workflow(payload.inputs, user=payload.user)
     )

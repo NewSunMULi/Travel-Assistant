@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Local secrets and environment files
+.env
+.env.*
+*.env
+!*.env.example
+
+# JavaScript
+node_modules/
+dist/
+.vite/
+
+# Editors, local agents, and OS metadata
+.idea/
+.vscode/
+.claude/
+.codex/
+.agents/
+.mcp.json
+.DS_Store
+Thumbs.db
+
+# Logs and local archives
+*.log
+*.zip

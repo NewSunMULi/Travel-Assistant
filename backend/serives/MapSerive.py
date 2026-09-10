@@ -586,7 +586,7 @@ class MapServices:
 # ────────────────────────────── 自测入口 ──────────────────────────────
 if __name__ == "__main__":
     import json
-    ms = MapServices('328dce04c8af238cccf56965d1a6a2fa')  # 依赖环境变量 AMAP_KEY
+    ms = MapServices()  # 从环境变量 AMAP_KEY 读取密钥
 
     # 1. 文字 → 经纬度
     loc = ms.get_location("昆明市翠湖公园")

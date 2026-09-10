@@ -1,7 +1,7 @@
 {
   "name": "kunming-travel-copilot",
   "version": "1.0.0",
-  "description": "昆明智能旅行决策 Agent 前端 - 融合 RAG、工具调用与人机协同",
+  "description": "基于 Dify 工作流的旅游规划助手前端",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,9 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.4.21",
-    "vue-router": "^4.3.0",
-    "pinia": "^2.1.7"
+    "vue": "^3.4.21"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

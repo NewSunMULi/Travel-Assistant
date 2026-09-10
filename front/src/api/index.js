@@ -120,48 +120,4 @@ function parseSseEvent(raw, handlers) {
   }
 }
 
-export const amapApi = {
-  health: () => fetchJson(`${BASE}/api/health`),
-  weather: (city, forecast = true) => fetchJson(`${BASE}/api/weather?city=${encodeURIComponent(city)}&forecast=${forecast}`),
-  budget: (budget, days, people) => fetchJson(
-    `${BASE}/api/budget?budget=${budget}&days=${days}&people=${people}`
-  ),
-  travelSpots: (place, keyword = '景点', size = 10) => fetchJson(
-    `${BASE}/api/travel_spots?place=${encodeURIComponent(place)}&keyword=${encodeURIComponent(keyword)}&size=${size}`
-  ),
-  geocode: (address, city) => {
-    const qs = new URLSearchParams({ address })
-    if (city) qs.set('city', city)
-    return fetchJson(`${BASE}/api/geocode?${qs.toString()}`)
-  },
-  geocodeBatch: (addresses, city) => fetchJson(`${BASE}/api/geocode/batch`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ addresses, city: city || null })
-  }),
-  route: (origin, destination, mode = 'driving') => fetchJson(
-    `${BASE}/api/route?origin=${origin}&destination=${destination}&mode=${mode}`
-  ),
-  routeMulti: (origin, destination, waypoints, mode = 'driving') => fetchJson(`${BASE}/api/route/multi`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ origin, destination, waypoints, mode })
-  }),
-  restaurants: (location, radius = 2000, keyword, size = 10) => {
-    const qs = new URLSearchParams({ location, radius: String(radius), size: String(size) })
-    if (keyword) qs.set('keyword', keyword)
-    return fetchJson(`${BASE}/api/restaurants?${qs.toString()}`)
-  }
-}
-
-async function fetchJson(url, opts) {
-  try {
-    const r = await fetch(url, opts)
-    if (!r.ok) return { error: `HTTP ${r.status}`, ok: false }
-    return await r.json()
-  } catch (e) {
-    return { error: String(e), ok: false }
-  }
-}
-
 export { checkBackendAlive }

@@ -1,51 +1,29 @@
 <template>
   <div class="app-layout">
-    <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
-      <AppSidebar />
-    </aside>
+    <header class="topbar">
+      <div class="topbar-title">🧭 Dify 旅游规划助手</div>
+      <button class="icon-btn" @click="toggleTheme" :title="isDark ? '切换浅色' : '切换深色'">
+        <svg v-if="isDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </svg>
+        <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      </button>
+    </header>
 
-    <div class="main-area">
-      <header class="topbar">
-        <button class="icon-btn" @click="sidebarCollapsed = !sidebarCollapsed" title="切换侧边栏">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-        <div class="topbar-title">{{ currentTitle }}</div>
-        <button class="icon-btn" @click="toggleTheme" :title="isDark ? '切换浅色' : '切换深色'">
-          <svg v-if="isDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-          </svg>
-          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        </button>
-      </header>
-
-      <main class="app-main">
-        <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
-      </main>
-    </div>
+    <main class="app-main">
+      <TravelPlanner />
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import AppSidebar from '@/components/AppSidebar.vue'
+import { ref, onMounted, watch } from 'vue'
+import TravelPlanner from '@/views/TravelPlanner.vue'
 
-const route = useRoute()
-const sidebarCollapsed = ref(false)
 const isDark = ref(true)
-
-const currentTitle = computed(() => route.meta.title || '昆明智能旅行决策 Agent')
 
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
@@ -72,34 +50,8 @@ watch(isDark, applyTheme)
 
 <style scoped>
 .app-layout {
-  display: flex;
   min-height: 100vh;
   background: var(--bg);
-}
-
-.sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background: var(--sidebar-bg);
-  border-right: 1px solid var(--border);
-  transition: width var(--transition), transform var(--transition);
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-.sidebar.collapsed {
-  width: 0;
-  border-right: none;
-  transform: translateX(-100%);
-}
-
-.main-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
 }
 
 .topbar {
@@ -147,22 +99,7 @@ watch(isDark, applyTheme)
   padding: 28px 28px 60px;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(6px);
-}
-
 @media (max-width: 760px) {
-  .sidebar {
-    position: fixed;
-    z-index: 60;
-    height: 100vh;
-  }
   .app-main {
     padding: 20px 16px 60px;
   }

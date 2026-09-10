@@ -5,11 +5,10 @@
       <h1>通用旅行助手 · Dify + 高德 API</h1>
       <p class="muted">
         后端 FastAPI <code class="inline-code">:8000</code> + Dify 工作流 SSE 流式调用。
-        无后端时自动 fallback 到演示数据。
       </p>
       <div class="backend-badge" :class="{ ok: backendAlive, fail: !backendAlive }">
         <span class="dot"></span>
-        <span>{{ backendAlive ? '后端已连接' : '后端未启动 (演示模式)' }}</span>
+        <span>{{ backendAlive ? '后端已连接' : '后端未连接' }}</span>
       </div>
     </header>
 
@@ -57,11 +56,11 @@
         <button v-for="d in demos" :key="d.label" class="chip" @click="applyDemo(d)">{{ d.label }}</button>
       </div>
       <div class="form-actions">
-        <button class="btn primary" :disabled="running" @click="runAgent">
+        <button class="btn primary" :disabled="running || !backendAlive" @click="runAgent">
           <span v-if="running">⏳ Agent 执行中...</span>
           <span v-else>🚀 启动 Agent 规划(完整)</span>
         </button>
-        <button class="btn" :disabled="running" @click="runSimple">💡 简要建议</button>
+        <button class="btn" :disabled="running || !backendAlive" @click="runSimple">💡 简要建议</button>
         <button class="btn ghost" @click="reset">重置</button>
         <button v-if="!backendAlive" class="btn ghost" @click="checkBackend">🔄 检测后端</button>
       </div>
@@ -100,7 +99,6 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { runWorkflowStream, checkBackendAlive } from '@/api/index.js'
-import { mockRunAgent } from '@/api/mockData.js'
 
 const defaultForm = {
   request: '请根据以下信息为我规划旅行行程',
@@ -149,22 +147,14 @@ function reset(resetForm = true) {
 async function runAgent() {
   reset(false)
   running.value = true
-
-  if (!backendAlive.value) {
-    await runMock(true)
-    return
-  }
   await runReal()
 }
 
 async function runSimple() {
   reset(false)
   running.value = true
-
-  if (!backendAlive.value) {
-    await runMock(false)
-    return
-  }
+  form.request = '请根据以下信息给出简要旅行建议'
+  form.special_request = '只要简要建议'
   await runReal()
 }
 
@@ -190,18 +180,26 @@ async function runReal() {
   })
 }
 
-async function runMock(fullPlan) {
-  const result = mockRunAgent({ ...form, fullPlan })
-  await sleep(600)
-  finalMarkdown.value = fullPlan ? result.finalMarkdown : result.simpleMarkdown
-  running.value = false
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
-
 function renderMd(md) {
   if (!md) return ''
-  let html = md
+  let html = String(md)
+  const imageTokens = []
+
+  // Markdown 图片必须先占位，否则后续的粗体、换行替换可能破坏 alt/title 属性。
+  // 同时接受普通 URL 和 `<URL with spaces>` 两种 Markdown 写法。
+  html = html.replace(
+    /!\[([^\]]*)\]\(\s*(?:<([^>]+)>|([^\s)]+))(?:\s+["']([^"']*)["'])?\s*\)/g,
+    (match, alt, angleUrl, plainUrl, title) => {
+      const url = angleUrl || plainUrl
+      if (!isSafeImageUrl(url)) return escapeHtml(match)
+
+      const titleAttr = title ? ` title="${escapeHtml(title)}"` : ''
+      const image = `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}"${titleAttr} loading="lazy" decoding="async" referrerpolicy="no-referrer">`
+      const token = `\u0000IMAGE_${imageTokens.length}\u0000`
+      imageTokens.push(image)
+      return token
+    }
+  )
   html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
   html = html.replace(/^### (.+)$/gm, '<h4>$1</h4>')
   html = html.replace(/^## (.+)$/gm, '<h3>$1</h3>')
@@ -216,7 +214,32 @@ function renderMd(md) {
     return '<tr>' + cells.map((c, i) => i === 0 ? `<th>${c}</th>` : `<td>${c}</td>`).join('') + '</tr>'
   })
   html = html.replace(/\n\n/g, '</p><p>')
+  html = html.replace(/\u0000IMAGE_(\d+)\u0000/g, (_, index) => imageTokens[Number(index)] || '')
   return '<div class="md-body-inner"><p>' + html + '</p></div>'
+}
+
+function isSafeImageUrl(value) {
+  const url = String(value || '').trim()
+  if (!url) return false
+
+  // 支持后端的相对文件地址、常规网络图片，以及 Markdown 中常见的 base64 图片。
+  if (/^(?:\/|\.\/|\.\.\/)/.test(url)) return true
+  if (/^data:image\/(?:png|jpe?g|gif|webp|svg\+xml);base64,[a-z0-9+/=\s]+$/i.test(url)) return true
+
+  try {
+    return ['http:', 'https:', 'blob:'].includes(new URL(url, window.location.origin).protocol)
+  } catch {
+    return false
+  }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 function downloadMd() {
@@ -312,6 +335,18 @@ function copyMd() {
   border: 1px solid var(--border); padding: 6px 10px; text-align: left;
 }
 .md-body-inner :deep(th) { background: var(--surface-2); }
+.md-body-inner :deep(img) {
+  display: block;
+  width: auto;
+  max-width: 80%;
+  height: auto;
+  max-height: 560px;
+  margin: 12px auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  object-fit: contain;
+  background: var(--surface-2);
+}
 
 .card.error { border-color: var(--danger); }
 .error-pre {
